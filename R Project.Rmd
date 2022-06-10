@@ -1,0 +1,102 @@
+---
+title: "R Project"
+output: html_document
+date: '2022-06-01'
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+Import Libraries
+```{r}
+library(tidyverse)
+library(lubridate)
+library(dplyr)
+library(ggplot2)
+library(wordcloud)
+library(tm)
+library(forecast)
+```
+
+Load Data
+```{r}
+data <- read.csv("~/Documents/NYCDSA/Projects/R/R Project/acquisitions_update_2021.csv")
+```
+
+```{r}
+data %>% distinct(Parent.Company)
+```
+Combining Month and year together
+```{r}
+data<-data %>% mutate(time = str_c(Acquisition.Year, Acquisition.Month,sep='-'))
+```
+Changing data$time from character to date format
+```{r}
+data$time = ym(data$time)
+```
+
+Number of Acquisitions over the years
+```{r}
+data %>% group_by(Acquired.Company, Acquisition.Year) %>%
+  count(Acquired.Company) %>%
+  ggplot(aes(Acquisition.Year)) +
+  geom_bar(aes())
+```
+Acquisitions by the month
+```{r}
+data %>% group_by(Acquired.Company, Acquisition.Month) %>%
+  count(Acquired.Company) %>%
+  ggplot(aes(Acquisition.Month, fill=Acquisition.Month)) +
+  geom_bar(aes())
+```
+Total Acquisitions by Parent Companies
+```{r}
+data %>% group_by(Parent.Company,Acquired.Company) %>%
+  count(Acquired.Company) %>%
+  ggplot(aes(Parent.Company, fill=Parent.Company)) +
+  geom_bar(aes())
+```
+
+
+Showing how many acquisitions were made from years 1957~2021
+```{r}
+data %>% group_by(Parent.Company, Acquisition.Year) %>%
+  count(Acquisition.Year) %>%
+  ggplot(aes(Acquisition.Year)) +
+  geom_bar(aes(fill=Parent.Company))
+```
+
+```{r}
+data %>% group_by(Acquisition.Price) %>%
+  count(Acquisition.Price) %>%
+  ggseasonplot(Acquisition.Price) + labs(title="Acquisition Price")
+```
+
+
+```{r}
+data %>% group_by(Country) %>%
+  count(Country)
+```
+
+Looking at the types of business
+```{r}
+data %>% distinct(Business) %>%
+  count(Business)
+```
+wordcloud for all acquisitions
+```{r}
+wordcloud(data$Business, colors=brewer.pal(8, "Dark2"))
+```
+
+```{r}
+data %>% group_by(Parent.Company) %>%
+  summarise(across(everything(), ~mean(.x)))
+```
+
